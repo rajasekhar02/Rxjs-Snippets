@@ -10,24 +10,52 @@ import { $D } from "rxjs-debug";
 const promise = index =>
   new Promise((resolve, reject) => {
     setTimeout(() => {
-      if (index & 1) resolve(index);
-      else reject(index);
+      if (index & 1) reject(index);
+      else resolve(Date.now());
     }, 1000);
   });
 const observable = from(
   new Array(10).fill(promise(2)).map((_, index) => promise(index))
 );
 
-const debugSource = $D(observable, {
-  id: "Special" // an optional id to easily identify the Observable in the console
+// Resolve Promises Parallel
+// observable
+//   .pipe(
+//     mergeMap(x =>
+//       from(x).pipe(
+//         delay(1000),
+//         catchError(x => of(`Caught Error ${Date.now()} merge`))
+//       )
+//     )
+//   )
+//   .subscribe(x => {
+//     console.log(x);
+//   });
 
-  // addDelay: 500, // add delay before every operator to slow down things
-  // hideOutputs: true, // hide all the ouputs for less noise in the console
-  // noStyling: true // disables styling, helpful when debugging unit tests
-});
+// Resolve Promises Sequentially
+// observable
+//   .pipe(
+//     concatMap(x =>
+//       from(x).pipe(
+//         delay(1000),
+//         catchError(x => of(`Caught Error ${Date.now()} concat`))
+//       )
+//     )
+//   )
+//   .subscribe(x => {
+//     console.log(x);
+//   });
 
-// apply operators on it (optional)
-const debugSourcePiped = debugSource.pipe(concatMap(x => of(x)));
-
-// activate the stream
-debugSourcePiped.subscribe();
+// Resolves only the latest Promises
+// observable
+//   .pipe(
+//     switchMap(x =>
+//       from(x).pipe(
+//         delay(1000),
+//         catchError(x => of(`Caught Error ${Date.now()} concat`))
+//       )
+//     )
+//   )
+//   .subscribe(x => {
+//     console.log(x);
+//   });
