@@ -1,36 +1,33 @@
-import { from, of } from "rxjs";
+import { from, merge, of } from "rxjs";
 import {
   catchError,
   concatMap,
   delay,
-filter,
-    mergeMap,
+  mergeMap,
   switchMap
 } from "rxjs/operators";
+import { $D } from "rxjs-debug";
 const promise = index =>
   new Promise((resolve, reject) => {
     setTimeout(() => {
-      if (index & 1) resolve(Date.now());
-      else reject(Date.now());
+      if (index & 1) resolve(index);
+      else reject(index);
     }, 1000);
   });
 const observable = from(
   new Array(10).fill(promise(2)).map((_, index) => promise(index))
-).pipe(
-  mergeMap(x => from(x).pipe(catchError(x => of("Caught Error")))),
-  concatMap(x => of(x).pipe(delay(1000))),
-  filter(x => x !== "Caught Error")
 );
-console.log("just before subscribe");
-observable.subscribe({
-  next(x) {
-    console.log("got value " + JSON.stringify(x));
-  },
-  error(err) {
-    console.error("something wrong occurred: " + err);
-  },
-  complete() {
-    console.log("done");
-  }
+
+const debugSource = $D(observable, {
+  id: "Special" // an optional id to easily identify the Observable in the console
+
+  // addDelay: 500, // add delay before every operator to slow down things
+  // hideOutputs: true, // hide all the ouputs for less noise in the console
+  // noStyling: true // disables styling, helpful when debugging unit tests
 });
-console.log("just after subscribe");
+
+// apply operators on it (optional)
+const debugSourcePiped = debugSource.pipe(concatMap(x => of(x)));
+
+// activate the stream
+debugSourcePiped.subscribe();
