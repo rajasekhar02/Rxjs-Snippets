@@ -1,13 +1,5 @@
 import { from, of } from "rxjs";
-import {
-  catchError,
-  concatMap,
-  delay,
-  map,
-  mergeMap,
-  observeOn,
-  switchMap
-} from "rxjs/operators";
+import { catchError, mergeMap } from "rxjs/operators";
 const promise = index =>
   new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -16,16 +8,8 @@ const promise = index =>
     }, 1000);
   });
 const observable = from(
-  new Array(10).fill(1).map((_, index) => promise(index))
-).pipe(
-  mergeMap(x =>
-    from(x).pipe(
-      catchError(x => of("caout")),
-      map(x => <number>x * 2)
-    )
-  ),
-  concatMap(x => of(x).pipe(delay(1000)))
-);
+  new Array(10).fill(promise(2)).map((_, index) => promise(index))
+).pipe(mergeMap(x => from(x).pipe(catchError(x => of("Caught Error")))));
 console.log("just before subscribe");
 observable.subscribe({
   next(x) {
